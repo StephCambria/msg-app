@@ -1,12 +1,30 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { sendMessageRoute } from "../utils/APIRoutes";
+import { getAllMessagesRoute, sendMessageRoute } from "../utils/APIRoutes";
 import Logout from "./Logout";
 import ChatInput from "./ChatInput";
 import Messages from "./Messages";
 import axios from "axios";
 
 export default function ChatContainer({ currentChat, currentUser }) {
+  const [messages, setMessages] = useState([]);
+
+  // cannot read properties of undefined (map) line 45
+  // edit, it is now loading an empty array since I took out the map function.
+  // the current plan is to rework how I'm going to integrate a map function with useEffect
+  // u_u
+
+  useEffect(() => {
+    async function fetchData() {
+      const data = await axios.post(getAllMessagesRoute, {
+        from: currentUser,
+        to: currentChat,
+      });
+      setMessages(data.currentChat);
+    }
+    fetchData();
+  }, [currentUser, currentChat]);
+
   const handleSendMsg = async (msg) => {
     await axios.post(sendMessageRoute, {
       from: currentUser._id,
@@ -27,7 +45,10 @@ export default function ChatContainer({ currentChat, currentUser }) {
             <Logout />
           </div>
 
-          <Messages />
+          <div className="content">
+            <p>{messages}</p>
+          </div>
+
           <ChatInput handleSendMsg={handleSendMsg} />
         </Container>
       )}
