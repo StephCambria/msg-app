@@ -6,48 +6,33 @@ import ChatInput from "./ChatInput";
 //import Messages from "./Messages";
 import axios from "axios";
 
-export default function ChatContainer({ currentChat, currentUser, msg }) {
-  const [messages, setMessages] = useState([msg]);
-
-  // cannot read properties of undefined (map) line 45
-  // edit, it is now loading an empty array since I took out the map function.
-  // the current plan is to rework how I'm going to integrate a map function with useEffect
-  // u_u
-
+export default function ChatContainer({ currentUser, currentChat }) {
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        let response = await fetch(getAllMessagesRoute, msg);
-        let data = await response.json(msg);
-        let newState = data.map((msg) => msg);
-        setMessages(newState);
-      } catch (error) {
-        console.error(error.message);
-      }
+    async function fetchMessages() {
+      const response = await axios.get(getAllMessagesRoute, {
+        from: currentUser,
+        to: currentChat,
+      });
+      setMessages(response.data);
     }
-    fetchData();
-  }, [msg]) // am I missing a forEach?
+    fetchMessages();
+  }, [currentUser, currentChat]);
 
- // useEffect(() => {
- //   async function fetchData() {
- //     const data = await axios.get(getAllMessagesRoute, {
- //       from: currentUser,
- //       to: currentChat,
-//      });
-//      setMessages(data.currentChat);
-//    }
-//    fetchData();
-//  }, [currentUser, currentChat]);
-
-// This seems to work just fine
+  // This seems to work just fine
   const handleSendMsg = async (msg) => {
-    await axios.post(sendMessageRoute, {
-      from: currentUser._id,
-      to: currentChat._id,
-      message: msg,
-    }, [messages, setMessages]);
+    await axios.post(
+      sendMessageRoute,
+      {
+        from: currentUser._id,
+        to: currentChat._id,
+        message: msg,
+      },
+      [messages, setMessages]
+    );
   };
+
   return (
     <>
       {currentChat && (
@@ -61,8 +46,22 @@ export default function ChatContainer({ currentChat, currentUser, msg }) {
             <Logout />
           </div>
 
-          <div className="content">
-            <p>{messages}</p>
+          <div className="chat-messages">
+            {messages.map((message) => {
+              return (
+                <div>
+                  <div
+                    className={`message ${
+                      message.fromSelf ? "sent" : "received"
+                    }`}
+                  >
+                    <div className="content">
+                      <ul>{message.message}</ul>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           <ChatInput handleSendMsg={handleSendMsg} />
