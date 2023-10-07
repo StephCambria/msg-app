@@ -31,6 +31,10 @@ export default function ChatContainer({ currentUser, currentChat }) {
       },
       [messages, setMessages]
     );
+
+    const msgs = [...messages]; //I FUCKING FIXED IT
+    msgs.push({ fromSelf: true, message: msg });
+    setMessages(msgs);
   };
 
   return (
@@ -47,21 +51,14 @@ export default function ChatContainer({ currentUser, currentChat }) {
           </div>
 
           <div className="chat-messages">
-            {messages.map((message) => {
-              return (
-                <div>
-                  <div
-                    className={`message ${
-                      message.fromSelf ? "sent" : "received"
-                    }`}
-                  >
-                    <div className="content">
-                      <ul>{message.message}</ul>
-                    </div>
+            {messages &&
+              messages.map((message) => {
+                return (
+                  <div>
+                    <p>{message.message}</p>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
 
           <ChatInput handleSendMsg={handleSendMsg} />
