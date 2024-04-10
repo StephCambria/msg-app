@@ -8,26 +8,24 @@ import ChatInput from "./ChatInput";
 import axios from "axios";
 
 export default function ChatContainer({ currentUser, currentChat }) {
-  //at the moment, I haven't gotten useState to save and load messages from the db
+  // UPDATE, after simplifying the Messages model and resetting my old database, everything seems to work now!
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
-    async function fetchMessages() {
+    const fetchMessages = async (message) => {
       const response = await axios.get(getAllMessagesRoute, {
-        // when I add _id to these, I get an error
-        from: currentUser,
-        to: currentChat,
+        from: currentUser._id,
+        to: currentChat._id,
+        message: message,
       });
       setMessages(response.data);
-    }
-    fetchMessages(); // Moving this makes no sense because I'll be unable to call the function
+    };
+    fetchMessages();
   }, [currentUser, currentChat]);
 
-  // This seems to work just fine
   const handleSendMsg = async (msg) => {
     await axios.post(
       sendMessageRoute,
-      // No issues with _id here?
       {
         from: currentUser._id,
         to: currentChat._id,
@@ -36,9 +34,7 @@ export default function ChatContainer({ currentUser, currentChat }) {
       [messages, setMessages]
     );
 
-    // So I tried to render from the array OUTSIDE of the handleSendMsg function
-    // and then had the audacity to wonder why nothing was happening
-    const msgs = [...messages];
+    const msgs = [...messages]; //I FUCKING FIXED IT
     msgs.push({ fromSelf: true, message: msg });
     setMessages(msgs);
   };
@@ -62,7 +58,7 @@ export default function ChatContainer({ currentUser, currentChat }) {
                 <div>
                   <div
                     className={`message ${
-                      message.fromSelf ? "sent" : "received"
+                      message.sender ? "sent" : "received"
                     }`}
                   >
                     <div className="content">
